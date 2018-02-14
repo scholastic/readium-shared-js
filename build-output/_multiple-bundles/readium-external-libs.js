@@ -23270,7 +23270,7 @@ var util = Object.freeze({
 //   executable instructions in the AST.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function indexOutOfRange(targetIndex, numChildElements) {
@@ -23404,10 +23404,6 @@ function inferTargetTextNode(CFIStepValue, $currNode, classBlacklist, elementBla
   // return the text node list
   return $targetTextNodeList;
 }
-
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
 
 // Description: Follows a step
 // Rationale: The use of children() is important here
@@ -24973,7 +24969,7 @@ var parser$1 = Object.freeze({
 //   Whoops. There shouldn't be any interference, however, I think this should be changed.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function getFirstIndirectionStepNum(CFIAST) {
@@ -24984,32 +24980,6 @@ function getFirstIndirectionStepNum(CFIAST) {
     var nextStepNode = CFIAST.cfiString.localPath.steps[stepNum];
     if (nextStepNode.type === 'indirectionStep') {
       return stepNum;
-    }
-  }
-
-  return undefined;
-}
-
-function searchLocalPathForHref($currElement, packageDocument, localPathNode, classBlacklist, elementBlacklist, idBlacklist) {
-  // Interpret the first local_path node, which is a set of steps and and a terminus condition
-  var nextStepNode = void 0;
-  var $foundElement = void 0;
-  for (var stepNum = 0; stepNum <= localPathNode.steps.length - 1; stepNum += 1) {
-    nextStepNode = localPathNode.steps[stepNum];
-    if (nextStepNode.type === 'indexStep') {
-      $foundElement = interpretIndexStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
-    } else if (nextStepNode.type === 'indirectionStep') {
-      $foundElement = interpretIndirectionStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
-    }
-
-    var _$foundElement = $foundElement,
-        _$foundElement2 = slicedToArray(_$foundElement, 1),
-        foundElement = _$foundElement2[0];
-    // Found the content document href referenced by the spine item
-
-
-    if (matchesLocalNameOrElement(foundElement, 'itemref')) {
-      return retrieveItemRefHref(foundElement, packageDocument);
     }
   }
 
@@ -25096,10 +25066,6 @@ function compareCFIASTs(CFIAST1, CFIAST2) {
   return result;
 }
 
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
-
 function interpretIndexStepNode(indexStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist) {
   // Check node type; throw error if wrong type
   if (indexStepNode === undefined || indexStepNode.type !== 'indexStep') {
@@ -25136,6 +25102,32 @@ function interpretIndirectionStepNode(indirectionStepNode, $currElement, classBl
   }
 
   return $stepTarget;
+}
+
+function searchLocalPathForHref($currElement, packageDocument, localPathNode, classBlacklist, elementBlacklist, idBlacklist) {
+  // Interpret the first local_path node, which is a set of steps and and a terminus condition
+  var nextStepNode = void 0;
+  var $foundElement = void 0;
+  for (var stepNum = 0; stepNum <= localPathNode.steps.length - 1; stepNum += 1) {
+    nextStepNode = localPathNode.steps[stepNum];
+    if (nextStepNode.type === 'indexStep') {
+      $foundElement = interpretIndexStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
+    } else if (nextStepNode.type === 'indirectionStep') {
+      $foundElement = interpretIndirectionStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
+    }
+
+    var _$foundElement = $foundElement,
+        _$foundElement2 = slicedToArray(_$foundElement, 1),
+        foundElement = _$foundElement2[0];
+    // Found the content document href referenced by the spine item
+
+
+    if (matchesLocalNameOrElement(foundElement, 'itemref')) {
+      return retrieveItemRefHref(foundElement, packageDocument);
+    }
+  }
+
+  return undefined;
 }
 
 // REFACTORING CANDIDATE: cfiString node and start step num could be merged into one argument,
@@ -25470,7 +25462,7 @@ var interpreter = Object.freeze({
 //  prior written permission.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function validateStartTextNode(startTextNode, characterOffset) {
@@ -25576,10 +25568,6 @@ function normalizeDomRange(domRange) {
     }
   }
 }
-
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
 
 // Description: Creates a CFI terminating step to a text node, with a character offset
 // REFACTORING CANDIDATE: Some of the parts of this method

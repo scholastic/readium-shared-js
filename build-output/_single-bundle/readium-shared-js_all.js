@@ -25911,7 +25911,7 @@ var util = Object.freeze({
 //   executable instructions in the AST.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function indexOutOfRange(targetIndex, numChildElements) {
@@ -26045,10 +26045,6 @@ function inferTargetTextNode(CFIStepValue, $currNode, classBlacklist, elementBla
   // return the text node list
   return $targetTextNodeList;
 }
-
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
 
 // Description: Follows a step
 // Rationale: The use of children() is important here
@@ -27614,7 +27610,7 @@ var parser$1 = Object.freeze({
 //   Whoops. There shouldn't be any interference, however, I think this should be changed.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function getFirstIndirectionStepNum(CFIAST) {
@@ -27625,32 +27621,6 @@ function getFirstIndirectionStepNum(CFIAST) {
     var nextStepNode = CFIAST.cfiString.localPath.steps[stepNum];
     if (nextStepNode.type === 'indirectionStep') {
       return stepNum;
-    }
-  }
-
-  return undefined;
-}
-
-function searchLocalPathForHref($currElement, packageDocument, localPathNode, classBlacklist, elementBlacklist, idBlacklist) {
-  // Interpret the first local_path node, which is a set of steps and and a terminus condition
-  var nextStepNode = void 0;
-  var $foundElement = void 0;
-  for (var stepNum = 0; stepNum <= localPathNode.steps.length - 1; stepNum += 1) {
-    nextStepNode = localPathNode.steps[stepNum];
-    if (nextStepNode.type === 'indexStep') {
-      $foundElement = interpretIndexStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
-    } else if (nextStepNode.type === 'indirectionStep') {
-      $foundElement = interpretIndirectionStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
-    }
-
-    var _$foundElement = $foundElement,
-        _$foundElement2 = slicedToArray(_$foundElement, 1),
-        foundElement = _$foundElement2[0];
-    // Found the content document href referenced by the spine item
-
-
-    if (matchesLocalNameOrElement(foundElement, 'itemref')) {
-      return retrieveItemRefHref(foundElement, packageDocument);
     }
   }
 
@@ -27737,10 +27707,6 @@ function compareCFIASTs(CFIAST1, CFIAST2) {
   return result;
 }
 
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
-
 function interpretIndexStepNode(indexStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist) {
   // Check node type; throw error if wrong type
   if (indexStepNode === undefined || indexStepNode.type !== 'indexStep') {
@@ -27777,6 +27743,32 @@ function interpretIndirectionStepNode(indirectionStepNode, $currElement, classBl
   }
 
   return $stepTarget;
+}
+
+function searchLocalPathForHref($currElement, packageDocument, localPathNode, classBlacklist, elementBlacklist, idBlacklist) {
+  // Interpret the first local_path node, which is a set of steps and and a terminus condition
+  var nextStepNode = void 0;
+  var $foundElement = void 0;
+  for (var stepNum = 0; stepNum <= localPathNode.steps.length - 1; stepNum += 1) {
+    nextStepNode = localPathNode.steps[stepNum];
+    if (nextStepNode.type === 'indexStep') {
+      $foundElement = interpretIndexStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
+    } else if (nextStepNode.type === 'indirectionStep') {
+      $foundElement = interpretIndirectionStepNode(nextStepNode, $currElement, classBlacklist, elementBlacklist, idBlacklist);
+    }
+
+    var _$foundElement = $foundElement,
+        _$foundElement2 = slicedToArray(_$foundElement, 1),
+        foundElement = _$foundElement2[0];
+    // Found the content document href referenced by the spine item
+
+
+    if (matchesLocalNameOrElement(foundElement, 'itemref')) {
+      return retrieveItemRefHref(foundElement, packageDocument);
+    }
+  }
+
+  return undefined;
 }
 
 // REFACTORING CANDIDATE: cfiString node and start step num could be merged into one argument,
@@ -28111,7 +28103,7 @@ var interpreter = Object.freeze({
 //  prior written permission.
 
 // ------------------------------------------------------------------------------------ //
-//  "PRIVATE" HELPERS                                                                   //
+//  "PUBLIC" METHODS (THE API) are exported using the `export` keyword                  //
 // ------------------------------------------------------------------------------------ //
 
 function validateStartTextNode(startTextNode, characterOffset) {
@@ -28217,10 +28209,6 @@ function normalizeDomRange(domRange) {
     }
   }
 }
-
-// ------------------------------------------------------------------------------------ //
-//  "PUBLIC" METHODS (THE API)                                                          //
-// ------------------------------------------------------------------------------------ //
 
 // Description: Creates a CFI terminating step to a text node, with a character offset
 // REFACTORING CANDIDATE: Some of the parts of this method
@@ -53860,6 +53848,8 @@ var ReflowableView = function(options, reader){
     var _bookStyles = options.bookStyles;
     var _iframeLoader = options.iframeLoader;
 
+    var _expandDocumentFullWidth = options.expandDocumentFullWidth;
+
     var _currentSpineItem;
     var _isWaitingFrameRender = false;
     var _deferredPageRequest;
@@ -53890,7 +53880,7 @@ var ReflowableView = function(options, reader){
         height: undefined
     };
 
-    var _lastBodySize = {
+    var _lastDocumentSize = {
         width: undefined,
         height: undefined
     };
@@ -54407,6 +54397,24 @@ var ReflowableView = function(options, reader){
         return false;
     }
 
+    function updateDocumentSize() {
+        var documentElement = _$epubHtml[0];
+
+        var newDocumentSize = {
+            width: documentElement.scrollWidth,
+            height: documentElement.scrollHeight
+        };
+
+        if (newDocumentSize.width != _lastDocumentSize.width || newDocumentSize.height != _lastDocumentSize.height) {
+            _lastDocumentSize.width = newDocumentSize.width;
+            _lastDocumentSize.height = newDocumentSize.height;
+
+            return true;
+        }
+
+        return false;
+    }
+
     function onPaginationChanged_(initiator, paginationRequest_spineItem, paginationRequest_elementId) {
         _paginationInfo.currentPageIndex = _paginationInfo.currentSpreadIndex * _paginationInfo.visibleColumnCount;
         _paginationInfo.pageOffset = (_paginationInfo.columnWidth + _paginationInfo.columnGap) * _paginationInfo.visibleColumnCount * _paginationInfo.currentSpreadIndex;
@@ -54693,6 +54701,12 @@ var ReflowableView = function(options, reader){
 
         }
 
+        updateDocumentSize();
+
+        if (_expandDocumentFullWidth) {
+            _$iframe.width(_lastDocumentSize.width);
+        }
+        
         // Only initializes the resize sensor once the content has been paginated once,
         // to avoid the pagination process to trigger a resize event during its first
         // execution, provoking a flicker
@@ -54706,24 +54720,12 @@ var ReflowableView = function(options, reader){
             return;
         }
 
-        // We need to make sure the content has indeed be resized, especially
-        // the first time it is triggered
-        _lastBodySize.width = $(bodyElement).width();
-        _lastBodySize.height = $(bodyElement).height();
-
         bodyElement.resizeSensor = new ResizeSensor(bodyElement, function() {
-            
-            var newBodySize = {
-                width: $(bodyElement).width(),
-                height: $(bodyElement).height()
-            };
+            var documentSizeChanged = updateDocumentSize();
 
-            console.debug("ReflowableView content resized ...", newBodySize.width, newBodySize.height, _currentSpineItem.idref);
+            console.debug("ReflowableView content resized ...", _lastDocumentSize.width, _lastDocumentSize.height, _currentSpineItem.idref);
             
-            if (newBodySize.width != _lastBodySize.width || newBodySize.height != _lastBodySize.height) {
-                _lastBodySize.width = newBodySize.width;
-                _lastBodySize.height = newBodySize.height;
-                
+            if (documentSizeChanged) {
                 console.debug("... updating pagination.");
 
                 updatePagination();
